@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Recuperar contraseña</title>
+  <link rel="stylesheet" href="css/password.css">
+</head>
+<body data-page="forgot">
+  <main class="card">
+    <h1>¿Olvidaste tu contraseña?</h1>
+    <p class="muted">Escribe el correo de tu cuenta y te enviaremos un enlace para crear una nueva.</p>
+
+    <div id="alert" class="alert" role="alert" hidden></div>
+
+    <form id="forgot-form" novalidate>
+      <label for="email">Correo electrónico</label>
+      <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required autofocus>
+
+      <button type="submit" class="btn" id="submit-btn">Enviar enlace</button>
+    </form>
+
+    <p class="links"><a href="login.html">Volver a iniciar sesión</a></p>
+  </main>
+
+  <script src="js/password.js"></script>
+</body>
+</html>

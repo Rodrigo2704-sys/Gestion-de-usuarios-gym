@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Gimnasio - Crear cuenta</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Crear cuenta</h1>
+    <p class="muted">Te enviaremos un código de 6 dígitos a tu correo para confirmar la cuenta.</p>
+
+    <div id="alert" class="alert" role="alert" hidden></div>
+
+    <form id="registro-form" novalidate>
+      <label for="nombre">Nombre completo</label>
+      <input id="nombre" type="text" autocomplete="name" maxlength="100" required autofocus>
+
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" type="email" autocomplete="email" maxlength="150" required>
+
+      <label for="password">Contraseña</label>
+      <div class="field">
+        <input id="password" type="password" autocomplete="new-password" maxlength="72" required>
+        <button type="button" class="toggle" data-toggle-password="password" aria-label="Mostrar contraseña">Mostrar</button>
+      </div>
+      <div class="meter" id="meter" data-level="0" aria-hidden="true"><span id="meter-bar"></span></div>
+      <span class="meter-label" id="meter-label" aria-live="polite"></span>
+      <ul class="rules" id="rules">
+        <li data-rule="length">Mínimo 8 caracteres</li>
+        <li data-rule="letter">Al menos una letra</li>
+        <li data-rule="number">Al menos un número</li>
+      </ul>
+
+      <label for="confirm_password">Repite la contraseña</label>
+      <div class="field">
+        <input id="confirm_password" type="password" autocomplete="new-password" maxlength="72" required>
+        <button type="button" class="toggle" data-toggle-password="confirm_password" aria-label="Mostrar contraseña">Mostrar</button>
+      </div>
+
+      <button type="submit" class="btn" id="btn-registrar">Crear cuenta</button>
+    </form>
+
+    <p class="links">¿Ya tienes cuenta? <a href="login.html">Iniciar sesión</a></p>
+  </main>
+
+  <script src="js/api-base.js"></script>
+  <script src="js/api-usuarios.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script src="js/registro.js"></script>
+</body>
+</html>

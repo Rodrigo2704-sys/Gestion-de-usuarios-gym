@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex">
+    <title>Panel de Administración - Gimnasio</title>
+    <style>
+        * { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f4f7f6; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+        .acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .enlace { background: #fff; color: #3498db; border: 1px solid #3498db; padding: 8px 12px; border-radius: 4px; font-weight: bold; text-decoration: none; font-size: .9rem; }
+        .enlace:hover { background: #eaf4fc; }
+        .seccion { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; }
+        h3 { margin-top: 0; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .tabla-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 4px; margin-right: 5px; font-weight: bold; }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-buscar { background-color: #3498db; color: white; }
+        .btn-guardar { background-color: #2ecc71; color: white; padding: 10px 15px; }
+        .btn-cancelar { background-color: #95a5a6; color: white; padding: 10px 15px; }
+        .btn-logout { background-color: #e74c3c; color: white; }
+        .form-grupo { margin-bottom: 15px; }
+        .form-grupo label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        td select { width: auto; padding: 6px; }
+        .flex-container { display: flex; gap: 10px; flex-wrap: wrap; }
+        .flex-container input { flex: 1; min-width: 220px; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .8rem; font-weight: bold; margin-right: 6px; }
+        .badge.activo { background: #e7f5ec; color: #1b6e3c; }
+        .badge.inactivo { background: #eceff1; color: #546e7a; }
+        .badge.pendiente { background: #fff4e0; color: #b26a00; }
+        .paginacion { display: flex; align-items: center; gap: 10px; margin-top: 15px; }
+        .mensaje { padding: 12px 16px; border-radius: 6px; margin-bottom: 15px; font-size: .95rem; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. BARRA SUPERIOR (saludo, enlaces y cerrar sesión) -->
+    <div class="header">
+        <h2>¡Bienvenido, <span id="nombre-bienvenida">Cargando...</span>!</h2>
+        <div class="acciones">
+            <a class="enlace" href="planes.html">Planes y membresías</a>
+            <a class="enlace" href="cambiar-password.html">Cambiar contraseña</a>
+            <button type="button" id="btn-logout" class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Mensajes de éxito o error (usuarios.js los llena) -->
+    <div id="mensaje" class="mensaje" role="status" aria-live="polite" style="display:none"></div>
+
+    <!-- 2. BÚSQUEDA POR CORREO -->
+    <div class="seccion">
+        <h3>Filtro de Búsqueda</h3>
+        <div class="flex-container">
+            <input type="email" id="input-busqueda-correo" placeholder="Escribe el correo exacto del cliente..." maxlength="150">
+            <button type="button" class="btn-buscar" onclick="buscarClienteEspecificoPorCorreo()">Buscar por Correo</button>
+            <button type="button" onclick="mostrarTodos()">Mostrar Todos</button>
+        </div>
+    </div>
+
+    <!-- 3. TABLA DE USUARIOS (6 columnas: coincide con usuarios.js) -->
+    <div class="seccion">
+        <h3>Clientes Registrados</h3>
+        <div class="tabla-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpo-tabla-usuarios">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #777;">Conectando con el servidor de FastAPI...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="paginacion">
+            <button type="button" id="btn-anterior" onclick="paginaAnterior()" disabled>← Anterior</button>
+            <span id="info-pagina"></span>
+            <button type="button" id="btn-siguiente" onclick="paginaSiguiente()" disabled>Siguiente →</button>
+        </div>
+    </div>
+
+    <!-- 4. FORMULARIO DE EDICIÓN -->
+    <div class="seccion">
+        <h3>Actualizar Información del Cliente</h3>
+        <div id="formulario-edicion">
+            <input type="hidden" id="edit-id">
+
+            <div class="form-grupo">
+                <label for="edit-nombre">Nombre Completo:</label>
+                <input type="text" id="edit-nombre" placeholder="Nombre completo del usuario" maxlength="100">
+            </div>
+
+            <div class="form-grupo">
+                <label for="edit-correo">Correo Electrónico:</label>
+                <input type="email" id="edit-correo" placeholder="correo@ejemplo.com" maxlength="150">
+            </div>
+
+            <button type="button" class="btn-guardar" onclick="ejecutarModificacionUsuario()">Guardar Cambios</button>
+            <button type="button" class="btn-cancelar" onclick="cancelarEdicion()">Cancelar</button>
+        </div>
+    </div>
+
+    <script src="js/api-base.js"></script>
+    <script src="js/api-usuarios.js"></script>
+    <script src="js/usuarios.js"></script>
+</body>
+</html>

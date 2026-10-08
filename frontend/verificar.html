@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSP PARA PRODUCCIÓN (Descomentar al publicar en el servidor final) -->
+  <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"> -->
+  <!-- CSP TEMPORAL PARA DESARROLLO LOCAL -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' http://me.kis.v2.scr.kaspersky-labs.com; connect-src 'self' http: ws:; object-src 'none'; base-uri 'none'; form-action 'self';">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Gimnasio - Verificar correo</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <main class="card">
+
+    <section id="seccion-form">
+      <h1>Verifica tu correo</h1>
+      <p class="muted">Escribe el código de 6 dígitos que enviamos a tu correo. Si no llegó, revisa la carpeta de spam o pide uno nuevo.</p>
+
+      <div id="alert" class="alert" role="alert" hidden></div>
+
+      <form id="verificar-form" novalidate>
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" type="email" autocomplete="email" maxlength="150" required>
+
+        <label for="codigo">Código de verificación</label>
+        <input id="codigo" class="codigo" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000" required autofocus>
+
+        <button type="submit" class="btn" id="btn-verificar">Verificar</button>
+        <button type="button" class="btn btn-sec" id="btn-reenviar">Reenviar código</button>
+      </form>
+
+      <p class="links"><a href="login.html">Volver a iniciar sesión</a></p>
+    </section>
+
+    <section id="seccion-exito" hidden>
+      <h1>¡Cuenta verificada!</h1>
+      <p class="muted">Tu correo quedó confirmado. Te llevaremos al inicio de sesión…</p>
+      <a class="btn" href="login.html">Iniciar sesión</a>
+    </section>
+
+  </main>
+
+  <script src="js/api-base.js"></script>
+  <script src="js/api-usuarios.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script src="js/verificar.js"></script>
+</body>
+</html>

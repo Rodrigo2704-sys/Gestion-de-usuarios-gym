@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bloquea scripts inline o de otros dominios: si alguien lograra inyectar HTML, no podría ejecutar código. -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex">
+    <title>Gestión Profesional de Planes y Membresías</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        [hidden] { display: none !important; }
+        body { background-color: #f4f6f9; color: #333; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background-color: #fff; padding: 15px 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        #nombre-bienvenida { color: #007bff; font-weight: bold; }
+        .btn-logout { background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-logout:hover { background-color: #b02a37; }
+        .acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-link { background: #fff; color: #007bff; border: 1px solid #007bff; padding: 8px 16px; border-radius: 5px; font-weight: bold; text-decoration: none; font-size: .9rem; }
+        .btn-link:hover { background: #eaf3ff; }
+
+        main { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h2, h3 { margin-bottom: 15px; color: #2c3e50; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.9rem; font-weight: 600; color: #555; }
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
+
+        .btn-accion { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-accion:hover { background-color: #0056b3; }
+        .btn-verde { background-color: #28a745; }
+        .btn-verde:hover { background-color: #218838; }
+        button:disabled { opacity: .6; cursor: not-allowed; }
+
+        input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid rgba(0, 123, 255, .4); outline-offset: 1px; }
+
+        .tabla-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #343a40; color: white; }
+        tr:hover { background-color: #f1f1f1; }
+        td.vacio { text-align: center; color: #6c757d; }
+
+        .estado-activo { font-weight: bold; color: #1e7e34; }
+        .estado-otro { font-weight: bold; color: #6c757d; }
+
+        .mensaje { position: sticky; top: 10px; z-index: 10; padding: 12px 16px; border-radius: 6px; font-size: .95rem; box-shadow: 0 2px 5px rgba(0,0,0,.1); }
+        .mensaje.ok { background: #e7f5ec; color: #1b6e3c; }
+        .mensaje.error { background: #fdecea; color: #b3261e; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>Panel de Membresías - Bienvenido, <span id="nombre-bienvenida">Cargando...</span></div>
+        <div class="acciones">
+            <a class="btn-link" id="enlace-usuarios" href="usuarios.html" hidden>Usuarios</a>
+            <a class="btn-link" href="cambiar-password.html">Cambiar contraseña</a>
+            <button type="button" class="btn-logout" id="btn-logout">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="mensaje" class="mensaje" role="status" aria-live="polite" hidden></div>
+
+        <!-- SECCIÓN 1: CREAR PLAN (solo admin - POST /planes/crear).
+             Oculta por defecto: el JS la muestra únicamente si el usuario es admin.
+             OJO: esto es solo visual; el servidor debe volver a verificar el rol. -->
+        <div class="card" id="seccion-crear-plan" hidden>
+            <h3>1. Crear Nuevo Plan</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="crear-nombre">Nombre del Plan:</label>
+                    <input type="text" id="crear-nombre" placeholder="Ej. Plan Trimestral" maxlength="100" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="crear-precio">Precio ($):</label>
+                    <input type="number" id="crear-precio" placeholder="Ej. 150000" min="1" max="99999999.99" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="crear-duracion">Duración (Días):</label>
+                    <input type="number" id="crear-duracion" placeholder="Ej. 90" min="1" max="3650" step="1">
+                </div>
+            </div>
+            <button type="button" class="btn-accion btn-verde" id="btn-crear-plan">Guardar Plan</button>
+        </div>
+
+        <!-- SECCIÓN 2: ASIGNAR MEMBRESÍA (solo admin - POST /planes/asignar) -->
+        <div class="card" id="seccion-asignar" hidden>
+            <h3>2. Asignar Membresía a Usuario</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="asignar-usuario-id">ID del Usuario:</label>
+                    <input type="number" id="asignar-usuario-id" placeholder="Ej. 5" min="1" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="asignar-plan-select">Seleccionar Plan:</label>
+                    <select id="asignar-plan-select">
+                        <option value="">Cargando planes...</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" class="btn-accion" id="btn-asignar">Asignar Membresía</button>
+        </div>
+
+        <!-- SECCIÓN 3: PLANES ACTIVOS (GET /planes/obtener) -->
+        <div class="card">
+            <h3>3. Planes Activos en el Sistema</h3>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Duración</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-planes-activos"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: MI MEMBRESÍA (GET /planes/mi-membresia) -->
+        <div class="card">
+            <h3>4. Historial de Mis Membresías</h3>
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Membresía</th>
+                            <th>Plan ID</th>
+                            <th>Estado</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-mi-membresia"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts obligatorios en orden -->
+    <script src="js/api-base.js"></script>
+    <script src="js/api-planes.js"></script>
+    <script src="js/planes.js"></script>
+</body>
+</html>

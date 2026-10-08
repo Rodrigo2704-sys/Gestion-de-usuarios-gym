@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Gimnasio - Nueva contraseña</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <main class="card">
+
+    <section id="seccion-form">
+      <h1>Crea tu nueva contraseña</h1>
+      <p class="muted">Escribe el código que enviamos a tu correo y elige una contraseña que no uses en otros sitios.</p>
+
+      <div id="alert" class="alert" role="alert" hidden></div>
+
+      <form id="restablecer-form" novalidate>
+        <label for="correo">Correo electrónico</label>
+        <input id="correo" type="email" autocomplete="email" maxlength="150" required>
+
+        <label for="codigo">Código de 6 dígitos</label>
+        <input id="codigo" class="codigo" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000" required autofocus>
+
+        <label for="new_password">Nueva contraseña</label>
+        <div class="field">
+          <input id="new_password" type="password" autocomplete="new-password" maxlength="72" required>
+          <button type="button" class="toggle" data-toggle-password="new_password" aria-label="Mostrar contraseña">Mostrar</button>
+        </div>
+        <div class="meter" id="meter" data-level="0" aria-hidden="true"><span id="meter-bar"></span></div>
+        <span class="meter-label" id="meter-label" aria-live="polite"></span>
+        <ul class="rules" id="rules">
+          <li data-rule="length">Mínimo 8 caracteres</li>
+          <li data-rule="letter">Al menos una letra</li>
+          <li data-rule="number">Al menos un número</li>
+        </ul>
+
+        <label for="confirm_password">Repite la contraseña</label>
+        <div class="field">
+          <input id="confirm_password" type="password" autocomplete="new-password" maxlength="72" required>
+          <button type="button" class="toggle" data-toggle-password="confirm_password" aria-label="Mostrar contraseña">Mostrar</button>
+        </div>
+
+        <button type="submit" class="btn" id="btn-guardar">Guardar contraseña</button>
+      </form>
+
+      <p class="links">¿No te llegó el código? <a href="recuperar.html">Pedir uno nuevo</a></p>
+    </section>
+
+    <section id="seccion-exito" hidden>
+      <h1>Contraseña actualizada</h1>
+      <p class="muted">Ya puedes iniciar sesión con tu nueva contraseña.</p>
+      <a class="btn" href="login.html">Ir a iniciar sesión</a>
+    </section>
+
+  </main>
+
+  <script src="js/api-base.js"></script>
+  <script src="js/api-usuarios.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script src="js/restablecer.js"></script>
+</body>
+</html>

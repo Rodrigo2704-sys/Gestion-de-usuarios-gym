@@ -1,0 +1,6 @@
+-Codigo de verificacion
+-el frontend de registrarse
+-Cerrar sesion
+Segundo: El módulo de Control de Asistencia (Check-in).
+Tercero: El flujo de correos (Verificación de cuenta y Recuperación de contraseña), ya que requiere configurar el servicio de envío de emails.
+completar: recuperar contraseñas(cuenta)

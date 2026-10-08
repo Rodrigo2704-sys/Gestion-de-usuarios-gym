@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Gimnasio - Recuperar contraseña</title>
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <main class="card">
+    <h1>¿Olvidaste tu contraseña?</h1>
+    <p class="muted">Escribe el correo de tu cuenta y te enviaremos un código de 6 dígitos para crear una nueva.</p>
+
+    <div id="alert" class="alert" role="alert" hidden></div>
+
+    <form id="recuperar-form" novalidate>
+      <label for="correo">Correo electrónico</label>
+      <input id="correo" type="email" autocomplete="email" maxlength="150" required autofocus>
+
+      <button type="submit" class="btn" id="btn-enviar">Enviar código</button>
+    </form>
+
+    <p class="links"><a href="restablecer.html">Ya tengo mi código</a></p>
+    <p class="links"><a href="login.html">Volver a iniciar sesión</a></p>
+  </main>
+
+  <script src="js/api-base.js"></script>
+  <script src="js/api-usuarios.js"></script>
+  <script src="js/auth-ui.js"></script>
+  <script src="js/recuperar.js"></script>
+</body>
+</html>
