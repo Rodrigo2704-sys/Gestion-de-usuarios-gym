@@ -1,0 +1,12 @@
+# Variables de entorno
+.env
+
+# Base de datos
+Bd_gimnasio.sql
+
+# Archivos de texto y notas
+contraseñasFASTapi.txt
+CorrerServidorAPI.txt
+Falta.txt
+LibreriasUtilizadas.txt
+Pasos_subir_github.txt
