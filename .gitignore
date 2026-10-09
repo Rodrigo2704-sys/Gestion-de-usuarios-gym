@@ -3,7 +3,7 @@
 
 # Base de datos
 Bd_gimnasio.sql
-
+MigracionesGym.sql
 # Archivos de texto y notas
 contraseñasFASTapi.txt
 CorrerServidorAPI.txt
