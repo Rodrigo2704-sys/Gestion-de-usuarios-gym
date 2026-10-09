@@ -1,6 +1,6 @@
 # app/core/correo.py
 """Envío de correos por SMTP. Pensado para usarse con BackgroundTasks de FastAPI:
-las funciones enviar_codigo_* nunca lanzan excepciones (solo las registran), así un
+las funciones enviar_* nunca lanzan excepciones (solo las registran), así un
 fallo del servidor de correo no rompe la respuesta HTTP ni deja tracebacks sueltos.
 """
 import html
@@ -86,3 +86,26 @@ def enviar_codigo_recuperacion(destino: str, nombre: str, codigo: str) -> None:
         _enviar(destino, f"{cfg.NOMBRE_APP}: recuperar contraseña", texto, _html(nombre, intro, codigo, pie))
     except ErrorEnvioCorreo:
         logger.exception("No se pudo enviar el correo de recuperación")
+
+
+# NUEVO: aviso de seguridad cuando la contraseña cambia (por "cambiar contraseña" o
+# por "olvidé mi contraseña"). Si no fue el usuario, se entera al instante.
+def enviar_aviso_cambio_password(destino: str, nombre: str) -> None:
+    asunto = f"{cfg.NOMBRE_APP}: tu contraseña fue cambiada"
+    intro = "La contraseña de tu cuenta acaba de cambiar y se cerraron tus otras sesiones."
+    pie = (
+        "Si no fuiste tú, restablece tu contraseña de inmediato con la opción "
+        "'Olvidé mi contraseña' y contacta al soporte."
+    )
+    texto = f"Hola {nombre},\n\n{intro}\n\n{pie}\n"
+    cuerpo_html = f"""\
+<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;">
+  <h2 style="margin:0 0 16px;">{html.escape(cfg.NOMBRE_APP)}</h2>
+  <p>Hola {html.escape(nombre)},</p>
+  <p>{html.escape(intro)}</p>
+  <p style="color:#b91c1c;font-size:14px;"><strong>{html.escape(pie)}</strong></p>
+</div>"""
+    try:
+        _enviar(destino, asunto, texto, cuerpo_html)
+    except ErrorEnvioCorreo:
+        logger.exception("No se pudo enviar el aviso de cambio de contraseña")

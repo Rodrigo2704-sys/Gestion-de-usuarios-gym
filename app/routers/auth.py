@@ -5,7 +5,11 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request,
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.core.correo import enviar_codigo_recuperacion, enviar_codigo_verificacion
+from app.core.correo import (
+    enviar_aviso_cambio_password,
+    enviar_codigo_recuperacion,
+    enviar_codigo_verificacion,
+)
 from app.core.database import get_db
 from app.core.limiter import limiter
 from app.crud.usuarios import obtener_usuario_por_correo
@@ -116,10 +120,13 @@ def olvide_password(
 def restablecer_password_endpoint(
     request: Request,
     datos: RestablecerPassword,
+    tareas: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     try:
         cambiada = restablecer_password(db, datos.correo, datos.codigo, datos.password_nueva)
+        usuario = obtener_usuario_por_correo(db, datos.correo) if cambiada else None
+        destino = (usuario.correo, usuario.nombre) if usuario else None
     except SQLAlchemyError:
         logger.exception("Error de BD al restablecer contraseña")
         raise HTTPException(
@@ -129,5 +136,9 @@ def restablecer_password_endpoint(
 
     if not cambiada:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=MSG_CODIGO_INVALIDO)
+
+    # NUEVO: aviso de seguridad por correo (se envía después de responder).
+    if destino:
+        tareas.add_task(enviar_aviso_cambio_password, *destino)
 
     return {"Exito": True, "Mensaje": "Contraseña actualizada. Ya puedes iniciar sesión."}

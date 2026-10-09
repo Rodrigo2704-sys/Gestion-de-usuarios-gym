@@ -39,7 +39,6 @@ def _normalizar_correo(valor: Optional[str]) -> Optional[str]:
 # Roles
 # ---------------------------------------------------------------------------
 class RolSalida(BaseModel):
-    # Si ya tienes RolSalida definido en otro lado, borra esta clase e impórtala.
     id: int
     nombre: str
 
@@ -76,9 +75,11 @@ class EntradaRegistro(DatosUsuario):
     def correo_en_minusculas(clase, valor: str) -> str:
         return _normalizar_correo(valor)
 
-    password: str = Field( ...,min_length=8
-    ,max_length=MAX_PASSWORD
-    ,description="Entre 8 y 72 caracteres",
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=MAX_PASSWORD,
+        description="Entre 8 y 72 caracteres",
     )
 
     model_config = ConfigDict(extra="forbid")
@@ -109,6 +110,10 @@ class ActualizarUsuario(BaseModel):
     nombre: Optional[Nombre] = None
     correo: Optional[EmailStr] = None
     activo: Optional[bool] = None  # solo admin (lo controla el router)
+    # NUEVO: obligatoria cuando alguien cambia SU PROPIO correo. Sin esto, con un token
+    # robado se podría poner un correo del atacante y luego usar "olvidé mi contraseña".
+    # El router la lee y la descarta: nunca llega a la BD.
+    password_actual: Optional[str] = Field(None, max_length=128)
 
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
@@ -128,8 +133,7 @@ class ActualizarUsuario(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Cambio de contraseña (requiere la actual). Falta el endpoint; se arma
-# al revisar crud/usuarios.py y core/security.py.
+# Cambio de contraseña (requiere la actual).
 # ---------------------------------------------------------------------------
 class CambiarPassword(BaseModel):
     password_actual: str

@@ -25,7 +25,7 @@ from app.core.config import (
 from app.core.security import hash_password
 from app.crud.usuarios import obtener_usuario_por_correo
 from app.models.usuarios import CodigoVerificacionModel as Codigo
-from app.models.usuarios import ahora_utc
+from app.models.usuarios import UsuarioModel, ahora_utc
 
 PROPOSITO_VERIFICAR = "verificar_correo"
 PROPOSITO_RECUPERAR = "recuperar_password"
@@ -49,6 +49,11 @@ def crear_codigo(db: Session, usuario_id: int, proposito: str) -> str:
     (para enviarlo por correo; nunca se vuelve a poder leer de la BD)."""
     ahora = ahora_utc()
     try:
+        # NUEVO: bloquea la fila del usuario hasta el commit. Sin esto, dos peticiones
+        # simultáneas podían pasar a la vez la revisión del tiempo de espera de abajo
+        # y saltarse el límite de reenvío.
+        db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).with_for_update().first()
+
         ultimo = (
             db.query(Codigo)
             .filter(Codigo.usuario_id == usuario_id, Codigo.proposito == proposito)
@@ -142,7 +147,11 @@ def verificar_correo(db: Session, correo: str, codigo: str) -> bool:
 
 def restablecer_password(db: Session, correo: str, codigo: str, password_nueva: str) -> bool:
     """Cambia la contraseña si el código es correcto. Como el usuario demostró que controla
-    su bandeja de entrada, también deja el correo como verificado."""
+    su bandeja de entrada, también deja el correo como verificado.
+
+    NUEVO: sube token_version (cierra todas las sesiones abiertas: si la contraseña se
+    restablece porque alguien entró a la cuenta, el atacante queda fuera) y limpia el
+    bloqueo por intentos fallidos del login."""
     usuario = obtener_usuario_por_correo(db, correo)
     if not usuario or not usuario.activo:
         return False
@@ -152,6 +161,9 @@ def restablecer_password(db: Session, correo: str, codigo: str, password_nueva: 
             return False
         usuario.password = hash_password(password_nueva)
         usuario.correo_verificado = True
+        usuario.token_version = UsuarioModel.token_version + 1
+        usuario.intentos_fallidos = 0
+        usuario.bloqueado_hasta = None
         db.commit()
         return True
     except Exception:

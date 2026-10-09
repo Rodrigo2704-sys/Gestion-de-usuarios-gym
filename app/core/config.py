@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# NUEVO: "desarrollo" (por defecto) o "produccion". En producción se endurece todo:
+# se apagan /docs y /redoc, se activa HSTS y se prohíben configuraciones peligrosas.
+ENTORNO = os.getenv("ENTORNO", "desarrollo").strip().lower()
+ES_PRODUCCION = ENTORNO == "produccion"
+
 # Prohibido arrancar sin llave secreta.
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
@@ -15,6 +20,12 @@ if not SECRET_KEY:
     )
 
 if len(SECRET_KEY) < 32:
+    # En producción una llave corta es un error; en desarrollo solo un aviso.
+    if ES_PRODUCCION:
+        raise ValueError(
+            "SECRET_KEY debe tener al menos 32 caracteres en producción. Genera una con: "
+            'python -c "import secrets; print(secrets.token_hex(32))"'
+        )
     warnings.warn(
         "SECRET_KEY es corta (menos de 32 caracteres). Genera una segura con: "
         'python -c "import secrets; print(secrets.token_hex(32))"',
@@ -44,7 +55,7 @@ CORS_ORIGINS = [
 
 
 # ---------------------------------------------------------------------------
-# NUEVO: CORREO (SMTP) Y CÓDIGOS DE VERIFICACIÓN
+# CORREO (SMTP) Y CÓDIGOS DE VERIFICACIÓN
 # ---------------------------------------------------------------------------
 def _bool_env(nombre: str, defecto: bool = False) -> bool:
     return os.getenv(nombre, str(defecto)).strip().lower() in {"1", "true", "si", "sí", "yes"}
@@ -59,11 +70,21 @@ SMTP_FROM = os.getenv("SMTP_FROM", "") or SMTP_USER
 SMTP_SSL = _bool_env("SMTP_SSL", False)
 
 # SOLO DESARROLLO: en vez de enviar el correo, imprime el código en la consola.
-# En producción debe quedar en false.
 EMAIL_EN_CONSOLA = _bool_env("EMAIL_EN_CONSOLA", False)
+# NUEVO: en producción esto dejaría los códigos de verificación en los logs.
+if ES_PRODUCCION and EMAIL_EN_CONSOLA:
+    raise ValueError("EMAIL_EN_CONSOLA no puede estar activo en producción.")
 
 NOMBRE_APP = os.getenv("NOMBRE_APP", "Mi aplicación")
 
 CODIGO_EXPIRA_MINUTOS = int(os.getenv("CODIGO_EXPIRA_MINUTOS", 15))
 CODIGO_MAX_INTENTOS = int(os.getenv("CODIGO_MAX_INTENTOS", 5))
 CODIGO_REENVIO_SEGUNDOS = int(os.getenv("CODIGO_REENVIO_SEGUNDOS", 60))
+
+# ---------------------------------------------------------------------------
+# NUEVO: BLOQUEO DE CUENTA POR FUERZA BRUTA EN EL LOGIN
+# Tras LOGIN_MAX_INTENTOS contraseñas incorrectas seguidas, la cuenta queda
+# bloqueada LOGIN_BLOQUEO_MINUTOS (aunque el atacante cambie de IP).
+# ---------------------------------------------------------------------------
+LOGIN_MAX_INTENTOS = int(os.getenv("LOGIN_MAX_INTENTOS", 5))
+LOGIN_BLOQUEO_MINUTOS = int(os.getenv("LOGIN_BLOQUEO_MINUTOS", 15))

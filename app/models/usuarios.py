@@ -33,10 +33,22 @@ class UsuarioModel(Base):
     # Borrado lógico: False = cuenta desactivada (no puede iniciar sesión).
     activo = Column(Boolean, nullable=False, default=True, server_default=text("1"))
 
-    # NUEVO: False hasta que el usuario confirme el código enviado a su correo.
-    # Requiere migración (ver migraciones.sql).
+    # False hasta que el usuario confirme el código enviado a su correo.
     correo_verificado = Column(
         Boolean, nullable=False, default=False, server_default=text("0")
+    )
+
+    # NUEVO (anti fuerza bruta): contraseñas incorrectas seguidas y hasta cuándo
+    # está bloqueada la cuenta. Requiere migración (migracion_seguridad.sql).
+    intentos_fallidos = Column(
+        Integer, nullable=False, default=0, server_default=text("0")
+    )
+    bloqueado_hasta = Column(DateTime, nullable=True)
+
+    # NUEVO (revocar sesiones): el token guarda este número. Al cambiar o restablecer
+    # la contraseña se sube en 1 y todos los tokens anteriores dejan de valer.
+    token_version = Column(
+        Integer, nullable=False, default=0, server_default=text("0")
     )
 
     # Trae el objeto Rol (y su nombre: "Administrador", "Cliente", etc.)
